@@ -1,0 +1,272 @@
+from flask import Flask, render_template, jsonify, request
+import datetime, os, math, requests, time, threading, json
+from threading import Lock, Condition
+
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+app = Flask(__name__, template_folder=os.path.join(BASE_DIR, 'templates'))
+
+ACCESS_LOG = os.path.join(BASE_DIR, 'access_log.txt')
+BUS_STATE_FILE = os.path.join(BASE_DIR, 'bus_state.json')
+GEO_CACHE_FILE = os.path.join(BASE_DIR, 'geo_cache.json')
+IST = datetime.timezone(datetime.timedelta(hours=5, minutes=30))
+data_lock = Lock()
+data_cond = Condition(data_lock)
+
+active_loggers = {}
+active_viewers = {} 
+geo_cache = {}
+
+bus_data = {
+    "lat": None, "lon": None, "status": "STOPPED", "speed_kmh": 0,
+    "time": None, "driver_name": "TESTING", "driver_phone": "+91 XXXXX",
+    "last_ping_time": None # Moved from global to here
+}
+
+def save_bus_state():
+    try:
+        with open(BUS_STATE_FILE, 'w') as f:
+            # Convert IST datetime objects or other non-serializable stuff if any
+            # (time and lat/lon are strings/floats, so it's fine)
+            json.dump(bus_data, f)
+    except: pass
+
+def load_bus_state():
+    if os.path.exists(BUS_STATE_FILE):
+        try:
+            with open(BUS_STATE_FILE, 'r') as f:
+                data = json.load(f)
+                bus_data.update(data)
+        except: pass
+
+def save_geo_cache():
+    try:
+        with open(GEO_CACHE_FILE, 'w') as f:
+            json.dump(geo_cache, f)
+    except: pass
+
+def load_geo_cache():
+    if os.path.exists(GEO_CACHE_FILE):
+        try:
+            with open(GEO_CACHE_FILE, 'r') as f:
+                data = json.load(f)
+                geo_cache.update(data)
+        except: pass
+
+load_bus_state()
+load_geo_cache()
+
+_last_area_lat = None
+_last_area_lon = None
+_last_area_name = "Unknown Area"
+
+def get_ip():
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    return request.remote_addr
+
+def get_area_name(lat, lon):
+    global _last_area_lat, _last_area_lon, _last_area_name
+    
+    # Use a lock to prevent concurrent API hits or global state corruption
+    with data_lock:
+        # 1. Check local cache (rounded to 4 decimals ~11m)
+        cache_key = f"{round(lat, 4)},{round(lon, 4)}"
+        if cache_key in geo_cache:
+            return geo_cache[cache_key]
+
+        # 2. Check last lookup distance
+        if _last_area_lat is not None:
+            moved = calculate_distance(_last_area_lat, _last_area_lon, lat, lon)
+            if moved < 50:
+                return _last_area_name
+                
+    try:
+        # Outside lock for the actual HTTP request to avoid blocking /get_bus long-term
+        url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}&zoom=18"
+        resp = requests.get(url, headers={'User-Agent': 'SGT_Bus_Tracker'}, timeout=2)
+        if resp.status_code == 200:
+            data = resp.json()
+            addr = data.get('display_name', 'Unknown')
+            parts = addr.split(',')
+            new_area_name = f"{parts[0].strip()}, {parts[1].strip()}" if len(parts) > 1 else parts[0]
+            
+            with data_lock:
+                _last_area_lat, _last_area_lon = lat, lon
+                _last_area_name = new_area_name
+                
+                # Store in cache
+                geo_cache[cache_key] = _last_area_name
+                # Limit cache size (keep last 500)
+                if len(geo_cache) > 500:
+                    keys_to_del = list(geo_cache.keys())[:250]
+                    for k in keys_to_del: del geo_cache[k]
+                save_geo_cache()
+                
+            return _last_area_name
+    except: pass
+    return _last_area_name
+
+def write_log(msg):
+    if os.path.exists(ACCESS_LOG) and os.path.getsize(ACCESS_LOG) > 1024 * 1024:
+        now_str = datetime.datetime.now(IST).strftime('%Y%m%d_%H%M%S')
+        backup = ACCESS_LOG.replace('.txt', f'_{now_str}.old.txt')
+        os.rename(ACCESS_LOG, backup)
+    now = datetime.datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
+    with open(ACCESS_LOG, 'a', encoding='utf-8') as f:
+        f.write(f"[{now}] {msg}\n")
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    R = 6371000 
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = math.radians(lat2 - lat1), math.radians(lon2 - lon1)
+    a = math.sin(dp/2)**2 + math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
+    return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+@app.route('/')
+def index():
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_mobile = any(kw in user_agent for kw in ['mobile', 'android', 'iphone', 'ipad', 'ipod'])
+    return render_template('index.html', is_mobile=is_mobile)
+
+@app.route('/log', methods=['GET', 'POST'])
+def log_gps():
+    key = request.args.get('key', ''); ip = get_ip()
+    net_type = request.args.get('net', 'Unknown'); net_str = request.args.get('str', 'Unknown')
+    if key not in ["Driver@SGT_43", "Admin@Laksh_Rohilla_7"]: return "Unauthorized", 401
+    lat, lon, speed, acc = request.args.get('lat'), request.args.get('lon'), request.args.get('speed', '0'), request.args.get('acc', '100')
+    if not lat or lat == '%LAT': return "No Lock", 400
+    try:
+        curr_lat, curr_lon = float(lat), float(lon)
+        accuracy = float(acc) if acc != '%ACC' else 50
+        raw_speed_kmh = float(speed) * 3.6 if speed != '%SPD' else 0.0
+        now = datetime.datetime.now(IST)
+        
+        # 1. Relaxed accuracy filter (from 20 to 55)
+        if accuracy > 55: return "Low Accuracy", 200
+        
+        with data_cond:
+            # 2. Monotonic check: Ignore if incoming data is older than current data
+            if bus_data["time"]:
+                try:
+                    last_data_time = datetime.datetime.fromisoformat(bus_data["time"].replace('Z', '+00:00'))
+                    if now <= last_data_time:
+                        return "Stale Data Ignored", 200
+                except ValueError:
+                    pass
+
+            if bus_data["lat"] is None:
+                bus_data.update({"lat": curr_lat, "lon": curr_lon, "time": now.isoformat(), "last_ping_time": now.isoformat()})
+                save_bus_state()
+                data_cond.notify_all()
+                return "Initialized", 200
+            
+            # Use stored last_ping_time from bus_data
+            lpt_str = bus_data.get("last_ping_time")
+            last_ping_datetime = datetime.datetime.fromisoformat(lpt_str) if lpt_str else now
+            
+            dist = calculate_distance(bus_data["lat"], bus_data["lon"], curr_lat, curr_lon)
+            dt = (now - last_ping_datetime).total_seconds() if last_ping_datetime else 1
+            calc_speed = (dist / dt) * 3.6 if dt > 0 else 0
+            
+            # Simple Smoothing / Hysteresis
+            # Augmented distance threshold (2.0m) to dampen GPS noise spikes
+            if raw_speed_kmh < 1.0 and dist < 2.0: 
+                final_speed = 0.0
+            else: 
+                final_speed = raw_speed_kmh if raw_speed_kmh > 0.5 else calc_speed
+            
+            # 3. Status Hysteresis
+            current_status = bus_data.get("status", "STOPPED")
+            if current_status == "STOPPED":
+                new_status = "RUNNING" if final_speed >= 1.0 else "STOPPED"
+            else: # RUNNING
+                new_status = "STOPPED" if final_speed < 0.5 else "RUNNING"
+
+            bus_data.update({
+                "lat": curr_lat, 
+                "lon": curr_lon, 
+                "speed_kmh": round(final_speed, 1), 
+                "status": new_status,
+                "time": now.isoformat(),
+                "last_ping_time": now.isoformat()
+            })
+            save_bus_state()
+            data_cond.notify_all()
+
+            # ── Session tracking ───────────────────────────────────────
+            prev = active_loggers.get(key)
+            gap = (now - prev['last']).total_seconds() if prev else None
+            is_new_session = prev is None or gap > 30
+
+            if is_new_session:
+                session_start = now
+                net_info_log = f" | Net: {net_type}({net_str})" if net_type != 'Unknown' and net_str != 'Unknown' else ""
+                write_log(f"{'─'*55}")
+                write_log(f"SESSION_START | Key: {key} | IP: {ip}{net_info_log}")
+            else:
+                session_start = prev['session_start']
+
+            active_loggers[key] = {"ip": ip, "last": now, "session_start": session_start}
+            log_lat, log_lon, log_spd = curr_lat, curr_lon, round(final_speed, 1)
+            
+        area = get_area_name(log_lat, log_lon)
+        net_info = f" | Net: {net_type}({net_str})" if net_type != 'Unknown' and net_str != 'Unknown' else ""
+        write_log(f"DRIVER_PING | Area: {area} | Spd: {log_spd}{net_info}")
+    except Exception as e: return "Error", 400
+    return "OK", 200
+
+@app.route('/get_bus')
+def get_bus():
+    now = datetime.datetime.now(IST); admin_key = request.args.get('admin')
+    with data_lock:
+        res = dict(bus_data)
+        res['server_now'] = now.isoformat()
+        res['is_online'] = any((now - v['last']).total_seconds() < 15 for v in active_loggers.values())
+        res['admin_active'] = "Admin@Laksh_Rohilla_7" in active_loggers and (now - active_loggers["Admin@Laksh_Rohilla_7"]['last']).total_seconds() < 15
+        stale_ips = [k for k, v in active_viewers.items() if (now - v['last']).total_seconds() > 300]
+        for ip in stale_ips: del active_viewers[ip]
+        if admin_key and "Laksh" in admin_key:
+            res['all_viewers'] = {k: {"lat": v['lat'], "lon": v['lon'], "device": v['device']} for k, v in active_viewers.items() if (now - v['last']).total_seconds() < 120}
+        return jsonify(res)
+
+
+
+@app.route('/update_viewer')
+def update_viewer():
+    ip = get_ip(); lat, lon = request.args.get('lat'), request.args.get('lon')
+    ua = request.headers.get('User-Agent', '').lower()
+    if lat and lon:
+        device = "Android" if "android" in ua else "iPhone" if "iphone" in ua else "PC"
+        with data_lock: active_viewers[ip] = {"lat": float(lat), "lon": float(lon), "device": device, "last": datetime.datetime.now(IST)}
+    return "OK", 200
+
+def session_watchdog():
+    """Background thread: detects session ends (no ping > 20s) and logs SESSION_END."""
+    SESSION_TIMEOUT = 20  # seconds — same threshold as is_online check (15s) + small buffer
+    while True:
+        time.sleep(15)
+        now = datetime.datetime.now(IST)
+        ended = []
+        with data_lock:
+            # Clean up stale bus sessions
+            for key, v in list(active_loggers.items()):
+                if (now - v['last']).total_seconds() > SESSION_TIMEOUT:
+                    ended.append((key, v))
+                    del active_loggers[key]
+            
+            # Clean up stale viewers (RAM Garbage Collection)
+            stale_ips = [ip for ip, data in active_viewers.items() if (now - data['last']).total_seconds() > 300]
+            for ip in stale_ips:
+                del active_viewers[ip]
+
+        for key, v in ended:
+            duration = (now - v['session_start']).total_seconds()
+            mins, secs = int(duration // 60), int(duration % 60)
+            write_log(f"SESSION_END   | Key: {key} | IP: {v['ip']} | Duration: {mins}m {secs}s")
+            write_log(f"{'─'*55}")
+
+# Start the session watchdog daemon thread
+_watchdog = threading.Thread(target=session_watchdog, daemon=True)
+_watchdog.start()
+
+if __name__ == '__main__': app.run(debug=False)

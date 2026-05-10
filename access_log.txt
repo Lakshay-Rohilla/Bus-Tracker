@@ -1,0 +1,128 @@
+
+[Admin - Lakshay Rohilla] ADMIN LOCK ACTIVATED | 02 Mar 2026, 09:19:09 PM | All non-admin loggers suppressed
+
+============================================================
+[Admin - Lakshay Rohilla] SESSION STARTED | 02 Mar 2026, 09:19:09 PM | IP: 127.0.0.1
+[Admin - Lakshay Rohilla] 02 Mar 2026, 09:19:09 PM | IP: 127.0.0.1 | lat=28.77 | lon=77.04 | speed=0.0 km/h
+[Admin - Lakshay Rohilla] SESSION ENDED   | 02 Mar 2026, 09:19:29 PM
+============================================================
+[Admin - Lakshay Rohilla] ADMIN LOCK RELEASED | 02 Mar 2026, 09:20:37 PM
+
+[Admin - Lakshay Rohilla] ADMIN LOCK ACTIVATED | 02 Mar 2026, 09:36:43 PM | All non-admin loggers suppressed
+[2026-03-11 14:23:08] ───────────────────────────────────────────────────────
+[2026-03-11 14:23:08] SESSION_START | Key: Driver@SGT_43 | IP: 127.0.0.1
+[2026-03-11 14:23:09] DRIVER_PING | Area: Chanakya Puri Tehsil, New Delhi | Spd: 1.4
+[2026-03-11 14:23:09] DRIVER_PING | Area: Chanakya Puri Tehsil, New Delhi | Spd: 2.2
+[2026-03-11 14:23:09] DRIVER_PING | Area: Chanakya Puri Tehsil, New Delhi | Spd: 1382.7
+[2026-03-11 14:23:09] DRIVER_PING | Area: Chanakya Puri Tehsil, New Delhi | Spd: 3.6
+[2026-03-11 14:23:34] SESSION_END   | Key: Driver@SGT_43 | IP: 127.0.0.1 | Duration: 0m 25s
+[2026-03-11 14:23:34] ───────────────────────────────────────────────────────
+[2026-03-17 15:12:01] ───────────────────────────────────────────────────────
+[2026-03-17 15:12:01] SESSION_START | Key: Admin@Laksh_Rohilla_7 | IP: 127.0.0.1
+[2026-03-17 15:12:01] DRIVER_PING | Area: Unknown Area | Spd: 55.8
+[2026-03-17 15:12:45] SESSION_END   | Key: Admin@Laksh_Rohilla_7 | IP: 127.0.0.1 | Duration: 0m 44s
+[2026-03-17 15:12:45] ───────────────────────────────────────────────────────
+[2026-03-17 15:13:22] ───────────────────────────────────────────────────────
+[2026-03-17 15:13:22] SESSION_START | Key: Admin@Laksh_Rohilla_7 | IP: 127.0.0.1
+[2026-03-17 15:13:22] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:00] SESSION_END   | Key: Admin@Laksh_Rohilla_7 | IP: 127.0.0.1 | Duration: 0m 38s
+[2026-03-17 15:14:00] ───────────────────────────────────────────────────────
+[2026-03-17 15:14:00] ───────────────────────────────────────────────────────
+[2026-03-17 15:14:00] SESSION_START | Key: Admin@Laksh_Rohilla_7 | IP: 127.0.0.1
+[2026-03-17 15:14:00] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:05] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:10] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:15] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:20] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:25] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:30] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:33] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 72.0
+[2026-03-17 15:14:35] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:40] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:45] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:50] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:14:55] DRIVER_PING | Area: Kartavya Path, Chanakya Puri Tehsil | Spd: 55.8
+[2026-03-17 15:15:30] SESSION_END   | Key: Admin@Laksh_Rohilla_7 | IP: 127.0.0.1 | Duration: 1m 29s
+[2026-03-17 15:15:30] ───────────────────────────────────────────────────────
+[2026-03-24 09:44:34] ───────────────────────────────────────────────────────
+[2026-03-24 09:44:34] SESSION_START | Key: Admin@Laksh_Rohilla_7 | IP: 12ca17b49af22894
+[2026-03-24 09:44:34] DRIVER_PING | Area: Unknown Area | Spd: 144.0
+[2026-03-24 09:45:20] ───────────────────────────────────────────────────────
+[2026-03-24 09:45:20] SESSION_START | Key: Admin@Laksh_Rohilla_7 | IP: 12ca17b49af22894
+[2026-03-24 09:45:20] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:45:49] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:46:28] ───────────────────────────────────────────────────────
+[2026-03-24 09:46:28] SESSION_START | Key: Admin@Laksh_Rohilla_7 | IP: 12ca17b49af22894
+[2026-03-24 09:46:28] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:46:35] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:48:06] SESSION_END   | Key: Admin@Laksh_Rohilla_7 | IP: 12ca17b49af22894 | Duration: 1m 38s
+[2026-03-24 09:48:06] ───────────────────────────────────────────────────────
+[2026-03-24 09:51:00] ───────────────────────────────────────────────────────
+[2026-03-24 09:51:00] SESSION_START | Key: Admin@Laksh_Rohilla_7 | IP: 12ca17b49af22894
+[2026-03-24 09:51:00] DRIVER_PING | Area: Unknown Area | Spd: 0.0
+[2026-03-24 09:52:20] ───────────────────────────────────────────────────────
+[2026-03-24 09:52:20] SESSION_START | Key: Admin@Laksh_Rohilla_7 | IP: 12ca17b49af22894
+[2026-03-24 09:52:20] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 0.0
+[2026-03-24 09:52:39] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:52:49] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:52:54] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:52:59] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:04] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:09] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:14] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:19] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:24] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:29] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:34] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:39] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:44] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:49] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:54] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:53:59] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:04] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:09] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:14] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:19] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:24] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:29] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:34] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:39] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:44] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:49] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:54] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:54:59] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:04] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:09] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:14] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:19] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:24] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:29] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:34] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:39] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:44] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:49] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:54] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:55:59] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:04] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:09] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:14] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:19] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:24] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:29] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:34] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:39] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:44] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:49] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:54] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:56:59] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:57:04] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:57:09] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:57:14] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:57:19] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:57:24] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:57:29] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:57:34] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:57:39] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:57:44] DRIVER_PING | Area: Gurgaon, Gurugram | Spd: 144.0
+[2026-03-24 09:59:24] SESSION_END   | Key: Admin@Laksh_Rohilla_7 | IP: 12ca17b49af22894 | Duration: 7m 4s
+[2026-03-24 09:59:24] ───────────────────────────────────────────────────────

@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#4169E1" />
+  <title>SGT Bus Tracker - Route 43</title>
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- FIX: Replaced unpkg.com with faster cdnjs.cloudflare.com -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.1.4/dist/leaflet-rotate.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%234169E1' stroke='white' stroke-width='2'/%3E%3Ctext x='16' y='22' font-family='Arial, sans-serif' font-size='12' font-weight='bold' fill='white' text-anchor='middle'%3ESGT%3C/text%3E%3C/svg%3E">
+  <link rel="shortcut icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%234169E1' stroke='white' stroke-width='2'/%3E%3Ctext x='16' y='22' font-family='Arial, sans-serif' font-size='12' font-weight='bold' fill='white' text-anchor='middle'%3ESGT%3C/text%3E%3C/svg%3E">
+
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="icon" type="image/png" href="/static/icon-192.png?v=2">
+  <link rel="shortcut icon" type="image/png" href="/static/icon-192.png?v=2">
+
+  <style>
+    :root {
+      --primary: #4169E1;
+      --accent: #10b981;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #e5e3df;
+      overscroll-behavior-y: none;
+    }
+
+    #map-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100dvh;
+      width: 100vw;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+      z-index: 1;
+      pointer-events: auto;
+    }
+
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow {
+      will-change: transform;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    #bus-icon-inner {
+      contain: content;
+    }
+
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow,
+    .leaflet-tooltip {
+      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    }
+
+    .net-indicator {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1003;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      font-size: 11px;
+      font-weight: 800;
+      color: #1e293b;
+    }
+
+    .net-indicator i {
+      font-size: 14px;
+      color: var(--primary);
+    }
+
+    .sig-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 12px;
+    }
+
+    .bar {
+      width: 3px;
+      background: #e2e8f0;
+      border-radius: 1px;
+    }
+
+    .bar.fill {
+      background: var(--accent);
+    }
+
+    .bar-1 {
+      height: 4px;
+    }
+
+    .bar-2 {
+      height: 7px;
+    }
+
+    .bar-3 {
+      height: 10px;
+    }
+
+    .bar-4 {
+      height: 13px;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1001;
+      background: white;
+      padding: 10px 25px;
+      border-radius: 50px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      font-weight: 800;
+      color: #111;
+    }
+
+    .dev-name {
+      display: block;
+      margin-top: 2px;
+      font-size: 1em;
+      font-weight: 900;
+      color: #4169E1;
+    }
+
+    .info-box {
+      position: absolute;
+      z-index: 1000;
+      background: transparent;
+      border: none;
+      transition: all 0.4s ease;
+      pointer-events: none;
+    }
+
+    .info-box>* {
+      pointer-events: auto;
+    }
+
+    .map-ctrl-btn {
+      position: absolute;
+      z-index: 1002;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border: none;
+      cursor: pointer;
+    }
+
+    @media (min-width: 601px) {
+      .info-box {
+        top: 20px;
+        right: 20px;
+        width: 340px;
+        border-radius: 24px;
+        padding: 20px;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        pointer-events: auto;
+      }
+
+      .map-ctrl-btn {
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+        width: 50px;
+        height: 50px;
+        font-size: 1.3em;
+      }
+    }
+
+    @media (max-width: 600px) {
+
+      .leaflet-marker-shadow,
+      .leaflet-tooltip {
+        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+      }
+
+      .footer {
+        top: 15px;
+        right: 15px;
+        bottom: auto;
+        left: auto !important;
+        transform: none !important;
+        padding: 5px 12px;
+        font-size: 0.7em;
+        border-radius: 12px;
+        line-height: 1.1;
+      }
+
+      .dev-name {
+        margin-top: 1px;
+      }
+
+      .info-box {
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        border-radius: 20px 20px 0 0;
+        padding: 12px 12px 18px 12px;
+        background: white;
+        pointer-events: auto;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      .map-ctrl-btn {
+        top: 210px;
+        right: 15px;
+        transform: none;
+        width: 42px;
+        height: 42px;
+        font-size: 1.1em;
+      }
+
+      .net-indicator {
+        top: 15px;
+        left: 15px;
+      }
+    }
+
+    .live-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #bbb;
+      display: inline-block;
+      margin-right: 10px;
+    }
+
+    .live-dot.active {
+      background: var(--accent);
+    }
+
+    .route-header {
+      font-weight: 800;
+      font-size: 1.4em;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      white-space: nowrap;
+    }
+
+    #admin-badge {
+      display: none;
+      background: rgba(65, 105, 225, 0.1);
+      color: var(--primary);
+      font-size: 0.45em;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 800;
+      border: 1px solid rgba(65, 105, 225, 0.3);
+      text-transform: uppercase;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .data-card {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .label {
+      font-size: 0.65em;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    .detail {
+      font-size: 0.95em;
+      font-weight: 800;
+      color: #1e293b;
+      margin-top: 3px;
+    }
+
+    #current-time-clock {
+      color: #dc2626 !important;
+      font-size: 1.05em;
+    }
+
+    #contact-slide {
+      position: absolute;
+      z-index: 1002;
+      display: flex;
+      align-items: center;
+    }
+
+    #contact-tab {
+      background: var(--primary);
+      color: white;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #contact-panel {
+      background: white;
+      display: flex;
+      flex-direction: column;
+      max-width: 0;
+      overflow: hidden;
+      transition: max-width 0.35s cubic-bezier(0.2, 1, 0.3, 1), padding 0.35s;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .contact-link i {
+      background: rgba(65, 105, 225, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 601px) {
+      #contact-slide {
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      #contact-tab {
+        padding: 14px 8px;
+        border-radius: 0 10px 10px 0;
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+      }
+
+      #contact-panel {
+        border-radius: 0 16px 16px 0;
+        padding: 16px 0;
+        gap: 12px;
+        box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
+      }
+
+      #contact-panel.open {
+        max-width: 220px;
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .contact-link {
+        font-size: 0.82em;
+      }
+
+      .contact-link i {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      #contact-slide {
+        left: 0;
+        top: 40%;
+        transform: translateY(-50%);
+      }
+
+      #contact-tab {
+        padding: 12px 7px;
+        border-radius: 0 9px 9px 0;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.18);
+        font-size: 10px;
+        letter-spacing: 0.8px;
+      }
+
+      #contact-panel {
+        border-radius: 0 14px 14px 0;
+        padding: 12px 0;
+        gap: 10px;
+        box-shadow: 4px 0 14px rgba(0, 0, 0, 0.1);
+      }
+
+      #contact-panel.open {
+        max-width: 190px;
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .contact-link {
+        font-size: 0.78em;
+      }
+
+      .contact-link i {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .info-box .data-card {
+        padding: 8px 10px;
+        border-radius: 12px;
+      }
+
+      .info-box .label {
+        font-size: 0.6em;
+      }
+
+      .info-box .detail {
+        font-size: 0.88em;
+        margin-top: 2px;
+      }
+
+      .info-box #current-time-clock {
+        font-size: 0.95em;
+      }
+
+      .info-box .route-header {
+        font-size: 1.2em;
+        margin-bottom: 14px;
+      }
+
+      .data-grid {
+        gap: 7px;
+      }
+    }
+
+    #no-signal-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.2);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.35s ease, visibility 0.35s;
+    }
+
+    #no-signal-modal.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .ns-card {
+      pointer-events: auto;
+      background: white;
+      border-radius: 24px;
+      padding: 24px 20px;
+      max-width: 300px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      transform: translateY(-20px);
+      transition: transform 0.35s cubic-bezier(0.2, 1, 0.3, 1);
+      border: 2px solid rgba(65, 105, 225, 0.2);
+    }
+
+    #no-signal-modal.show .ns-card {
+      transform: translateY(0);
+    }
+
+    .ns-icon {
+      width: 64px;
+      height: 64px;
+      background: rgba(65, 105, 225, 0.08);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      font-size: 26px;
+      color: var(--primary);
+    }
+
+    .ns-title {
+      font-size: 1.15em;
+      font-weight: 900;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    .ns-subtitle {
+      font-size: 0.8em;
+      font-weight: 600;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
+    .ns-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 11px 28px;
+      font-size: 0.85em;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: opacity 0.2s;
+    }
+
+    .ns-btn:hover {
+      opacity: 0.85;
+    }
+
+    .bus-toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      z-index: 9999;
+      color: white;
+      padding: 12px 22px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 800;
+      gap: 8px;
+      transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+    }
+
+    #offline-toast {
+      background: #dc2626;
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+    }
+
+    #online-toast {
+      background: #10b981;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+    }
+
+    #offline-toast.show,
+    #online-toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .map-label {
+      background: transparent !important;
+      border-radius: 0;
+      padding: 4px 6px;
+      font-weight: 800;
+      font-size: 11px;
+      color: #1e293b;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    .leaflet-tooltip.map-label {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: #1e293b;
+      text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9), 0 -1px 3px rgba(255, 255, 255, 0.9), 1px 0 3px rgba(255, 255, 255, 0.9), -1px 0 3px rgba(255, 255, 255, 0.9);
+    }
+
+    .leaflet-tooltip.map-label::before {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body data-adminkey="{{ admin_key_from_url | default('') }}">
+  <div class="net-indicator">
+    <div class="sig-bars" id="net-bars">
+      <div class="bar bar-1"></div>
+      <div class="bar bar-2"></div>
+      <div class="bar bar-3"></div>
+      <div class="bar bar-4"></div>
+    </div>
+    <span id="net-text">WIFI - STRONG</span>
+  </div>
+  <div class="footer">MADE WITH LOVE ❤️ <span class="dev-name">Lakshay Rohilla</span></div>
+
+  <div id="contact-slide">
+    <div id="contact-panel">
+      <a href="mailto:231302257.feat@sgtuniversity.org" class="contact-link">
+        <i class="fas fa-envelope"></i> 231302257.feat@<br>sgtuniversity.org
+      </a>
+      <a href="tel:+919311753874" class="contact-link">
+        <i class="fas fa-phone-alt"></i> +91 93117 53874
+      </a>
+    </div>
+    <div id="contact-tab">CONTACT DEVELOPER</div>
+  </div>
+
+  <div id="map-wrapper">
+    <div id="map"></div>
+  </div>
+  <button id="focus-btn" class="map-ctrl-btn"><i class="fas fa-crosshairs"></i></button>
+  <div id="offline-toast" class="bus-toast"><i class="fas fa-satellite-dish"></i> Bus signal lost!</div>
+  <div id="online-toast" class="bus-toast"><i class="fas fa-location-arrow"></i> Location sharing started!</div>
+  <div id="offline-api-toast" class="bus-toast"
+    style="background: #334155; box-shadow: 0 8px 24px rgba(51, 65, 85, 0.4);"><i class="fas fa-wifi"></i> No Internet
+    Connection</div>
+
+  <div id="no-signal-modal">
+    <div class="ns-card">
+      <div class="ns-icon"><i class="fas fa-satellite-dish"></i></div>
+      <div class="ns-title">No Active Location Sharing</div>
+      <div class="ns-subtitle">The bus is not sharing its location right now. This usually means the route hasn't
+        started yet or the driver's app is not running.</div>
+      <button class="ns-btn" onclick="dismissNoSignalModal()">Got It</button>
+    </div>
+  </div>
+  <div class="info-box">
+    <div class="route-header">
+      <div><span class="live-dot" id="conn-dot"></span> Bus Route 43</div>
+      <span id="admin-badge"><i class="fas fa-shield-alt"></i> ADMIN CONTROL</span>
+    </div>
+    <div class="data-grid">
+      <div class="data-card" style="grid-column: span 2; background: rgba(220, 38, 38, 0.03);">
+        <div class="label" style="color: #dc2626;">SYSTEM DATE & TIME</div>
+        <div id="current-time-clock" class="detail">--:--:--</div>
+      </div>
+      <div class="data-card">
+        <div class="label">LAST UPDATED</div>
+        <div id="time" class="detail">Waiting...</div>
+      </div>
+      <div class="data-card">
+        <div class="label">BUS STATUS</div>
+        <div id="status-text" class="detail" style="color:#dc2626;">NO SIGNAL</div>
+        <div id="status-hint" style="font-size:0.6em;color:#94a3b8;margin-top:4px;font-weight:600;display:none;">Driver
+          not sharing location</div>
+      </div>
+      <a id="driver-call" href="tel:9813483418" class="data-card"
+        style="display: flex; justify-content: space-between; align-items: center; text-decoration: none;">
+        <div>
+          <div class="label">Contact Driver</div>
+          <div class="detail" style="color: var(--primary);">9813483418</div>
+        </div>
+        <i class="fas fa-phone-alt" style="color: var(--primary); font-size: 1.1em;"></i>
+      </a>
+      <div class="data-card">
+        <div class="label">Driver Name</div>
+        <div id="driver-name" class="detail">Ankit</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const IS_MOBILE_VIEW = '{{ is_mobile | tojson }}' === 'true';
+    let adminKey = sessionStorage.getItem('sgt_admin_key');
+    const _bodyAdminKey = document.body.dataset.adminkey;
+    if (_bodyAdminKey) {
+      adminKey = _bodyAdminKey;
+      sessionStorage.setItem('sgt_admin_key', _bodyAdminKey);
+    }
+    let busFirstLoad = true; let gpsFirstLoad = true; let busHeading = 0; let busActive = false; let busPos = [0, 0]; let adminMarkers = {}; let userPos = [0, 0]; let busVisible = false;
+    let wasBusActive = false;
+    let lastDataTime = 0;
+    let lastBusUpdate = 0;
+    let mapInteracted = false;
+    let updateTimeout = null;
+    let viewerUpdatePending = false;
+    let isAutoTracking = true;
+    let trackingEnabled = true;
+    let programmaticZoom = false;
+    let autoTrackingTimeout = null;
+    const MAX_BUS_SPEED_MS = 25;
+
+    // ========== MAP WITH ROTATION ENABLED ==========
+    var map = L.map('map', {
+      zoomControl: false,
+      tap: !IS_MOBILE_VIEW,
+      touchZoom: true,
+      dragging: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      boxZoom: true,
+      inertia: false,
+      bounceAtZoomLimits: true,
+      zoomAnimation: true,
+      markerZoomAnimation: true,
+      rotate: true,
+      rotateControl: false,
+      touchRotate: true,
+      bearing: 0
+    }).setView([28.6139, 77.2090], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      updateWhenIdle: true,
+      keepBuffer: 2
+    }).addTo(map);
+
+    let notificationRequested = false;
+    document.addEventListener('click', () => {
+      if (!notificationRequested && 'Notification' in window) {
+        Notification.requestPermission();
+        notificationRequested = true;
+      }
+    }, { once: true });
+
+    let offlineToastTimeout = null;
+    let onlineToastTimeout = null;
+
+    function showOfflineAlert() {
+      const offlineToast = document.getElementById('offline-toast');
+      const onlineToast = document.getElementById('online-toast');
+      onlineToast.classList.remove('show');
+      if (onlineToastTimeout) clearTimeout(onlineToastTimeout);
+
+      offlineToast.classList.add('show');
+      if (offlineToastTimeout) clearTimeout(offlineToastTimeout);
+      offlineToastTimeout = setTimeout(() => offlineToast.classList.remove('show'), 4000);
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('🚌 Bus Signal Lost', { body: 'Bus 43 ka signal band ho gaya!', icon: '' });
+      }
+    }
+
+    function showOnlineAlert() {
+      const offlineToast = document.getElementById('offline-toast');
+      const onlineToast = document.getElementById('online-toast');
+      offlineToast.classList.remove('show');
+      if (offlineToastTimeout) clearTimeout(offlineToastTimeout);
+
+      onlineToast.classList.add('show');
+      if (onlineToastTimeout) clearTimeout(onlineToastTimeout);
+      onlineToastTimeout = setTimeout(() => onlineToast.classList.remove('show'), 3500);
+    }
+
+    let _modalDismissed = false;
+
+    function showNoSignalModal() {
+      if (_modalDismissed) return;
+      document.getElementById('no-signal-modal').classList.add('show');
+    }
+
+    function dismissNoSignalModal() {
+      document.getElementById('no-signal-modal').classList.remove('show');
+      _modalDismissed = true;
+    }
+
+    function hideNoSignalModal() {
+      document.getElementById('no-signal-modal').classList.remove('show');
+      _modalDismissed = false;
+    }
+
+    const dateCache = new Map();
+    function formatDateTime(date) {
+      const key = date.getTime();
+      if (dateCache.has(key)) {
+        return dateCache.get(key);
+      }
+      const formatted = `<span style="white-space:nowrap;">${date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}</span> | <span style="white-space:nowrap;">${date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toUpperCase()}</span>`;
+      dateCache.set(key, formatted);
+
+      if (dateCache.size > 50) {
+        const firstKey = dateCache.keys().next().value;
+        dateCache.delete(firstKey);
+      }
+      return formatted;
+    }
+
+    function resetAutoTrackingTimer() {
+      if (autoTrackingTimeout) clearTimeout(autoTrackingTimeout);
+      autoTrackingTimeout = setTimeout(() => {
+        if (!busActive) return;
+        isAutoTracking = true;
+        trackingEnabled = true;
+        mapInteracted = false;
+      }, 10000);
+    }
+
+    window.onload = () => {
+      map.invalidateSize();
+      const tab = document.getElementById('contact-tab');
+      const panel = document.getElementById('contact-panel');
+      if (tab && panel) {
+        tab.addEventListener('click', (e) => {
+          e.stopPropagation();
+          panel.classList.toggle('open');
+        });
+
+        document.addEventListener('click', (e) => {
+          if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== tab) {
+            panel.classList.remove('open');
+          }
+        });
+
+        map.on('touchstart', () => {
+          if (panel.classList.contains('open')) panel.classList.remove('open');
+        });
+        map.on('dragstart', () => {
+          if (panel.classList.contains('open')) panel.classList.remove('open');
+        });
+      }
+
+      const adminBadge = document.getElementById('admin-badge');
+      if (adminBadge) {
+        let clickCount = 0;
+        let clickTimer = null;
+
+        const triggerAdminPrompt = () => {
+          const key = prompt("Enter Admin Key:");
+          if (key) {
+            adminKey = key;
+            sessionStorage.setItem('sgt_admin_key', key);
+            updateData();
+          }
+        };
+
+        adminBadge.addEventListener('click', triggerAdminPrompt);
+
+        const devName = document.querySelector('.dev-name');
+        if (devName) {
+          devName.addEventListener('click', () => {
+            clickCount++;
+            if (clickCount >= 5) {
+              clickCount = 0;
+              triggerAdminPrompt();
+            }
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => clickCount = 0, 2000);
+          });
+        }
+      }
+    };
+
+    // ORIGINAL BUS ICON (unchanged)
+    const svgBus = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="20" fill="#4169E1"/><circle cx="21" cy="21" r="20" fill="none" stroke="#ffffff" stroke-width="2.5"/><rect x="8" y="13" width="26" height="14" rx="3" fill="#ffffff"/><rect x="10" y="15" width="7" height="5" rx="1.2" fill="#4169E1"/><rect x="19" y="15" width="7" height="5" rx="1.2" fill="#4169E1"/><rect x="8" y="22" width="26" height="2" fill="rgba(0,0,0,0.1)"/><circle cx="13" cy="29" r="3" fill="#ffffff"/><circle cx="29" cy="29" r="3" fill="#ffffff"/><rect x="8" y="24" width="3" height="4" rx="1" fill="#ffffff"/><rect x="31" y="24" width="3" height="4" rx="1" fill="#ffffff"/></svg>`);
+    const busIcon = L.icon({ iconUrl: `data:image/svg+xml;charset=utf-8,${svgBus}`, iconSize: [42, 42], iconAnchor: [21, 21] });
+
+    const svgUser = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#3b82f6" stroke="#ffffff" stroke-width="3"/></svg>`);
+    const userIcon = L.icon({ iconUrl: `data:image/svg+xml;charset=utf-8,${svgUser}`, iconSize: [24, 24], iconAnchor: [12, 12] });
+
+    const svgAdmin = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" fill="#dc2626" stroke="#ffffff" stroke-width="2"/></svg>`);
+    const adminUserIcon = L.icon({ iconUrl: `data:image/svg+xml;charset=utf-8,${svgAdmin}`, iconSize: [18, 18], iconAnchor: [9, 9] });
+
+    var busMarker = L.marker([0, 0], { icon: busIcon, opacity: 0 }).addTo(map).bindTooltip("Bus 43", { permanent: true, direction: 'bottom', className: 'map-label' });
+    var userMarker = L.marker([0, 0], { icon: userIcon, opacity: 0 }).addTo(map).bindTooltip("You", { permanent: true, direction: 'top', className: 'map-label' });
+
+    function updateBusMarker(newPos) {
+      busMarker.setLatLng(newPos);
+    }
+
+    function getBearing(sLat, sLng, dLat, dLng) {
+      const toRad = d => d * Math.PI / 180;
+      const y = Math.sin(toRad(dLng - sLng)) * Math.cos(toRad(dLat));
+      const x = Math.cos(toRad(sLat)) * Math.sin(toRad(dLat)) - Math.sin(toRad(sLat)) * Math.cos(toRad(dLat)) * Math.cos(toRad(dLng - sLng));
+      return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    }
+
+    document.getElementById('focus-btn').onclick = () => {
+      isAutoTracking = true;
+      trackingEnabled = true;
+      mapInteracted = false;
+
+      let target = busActive && busPos[0] !== 0 ? busPos : userPos;
+      if (target[0] === 0 && target[1] === 0) return;
+
+      programmaticZoom = true;
+
+      if (window.innerWidth <= 600) {
+        map.setView(target, 17, { animate: true });
+        if (map.getBearing() !== 0) {
+          map.setBearing(0, { animate: true });
+        }
+      } else {
+        map.flyTo(target, 17, { animate: true, duration: 0.8 });
+        if (map.getBearing() !== 0) {
+          map.setBearing(0, { animate: true });
+        }
+      }
+
+      setTimeout(() => {
+        programmaticZoom = false;
+        if (busActive && busPos[0] !== 0) {
+          map.panTo(busPos, { animate: true });
+        }
+      }, 1000);
+    };
+
+    map.on('dragstart', () => {
+      if (!programmaticZoom) {
+        isAutoTracking = false;
+        trackingEnabled = false;
+        mapInteracted = true;
+        resetAutoTrackingTimer();
+      }
+    });
+
+    map.on('zoomstart', () => {
+      if (!programmaticZoom) {
+        isAutoTracking = false;
+        trackingEnabled = false;
+        mapInteracted = true;
+        resetAutoTrackingTimer();
+      }
+    });
+
+    map.on('rotate', () => {
+      if (!programmaticZoom) {
+        isAutoTracking = false;
+        trackingEnabled = false;
+        mapInteracted = true;
+        resetAutoTrackingTimer();
+      }
+    });
+
+    const mapEl = document.getElementById('map');
+    if (mapEl) {
+      const stopTracking = () => {
+        if (!programmaticZoom) {
+          isAutoTracking = false;
+          trackingEnabled = false;
+          mapInteracted = true;
+          resetAutoTrackingTimer();
+        }
+      };
+      mapEl.addEventListener('touchstart', stopTracking, { passive: true });
+      mapEl.addEventListener('mousedown', stopTracking, { passive: true });
+      mapEl.addEventListener('wheel', stopTracking, { passive: true });
+    }
+
+    function updateViewerPosition() {
+      if (viewerUpdatePending) return;
+      viewerUpdatePending = true;
+
+      navigator.geolocation.getCurrentPosition(pos => {
+        fetch(`/update_viewer?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`, {
+          method: 'GET',
+          keepalive: true
+        }).catch(() => { }).finally(() => {
+          viewerUpdatePending = false;
+        });
+      }, err => {
+        viewerUpdatePending = false;
+        if (err.code === 1) {
+          if (window.viewerPosInterval) clearInterval(window.viewerPosInterval);
+        }
+      }, {
+        enableHighAccuracy: false,
+        maximumAge: 30000,
+        timeout: 5000
+      });
+    }
+
+    window.viewerPosInterval = setInterval(updateViewerPosition, 120000);
+    setTimeout(updateViewerPosition, 2000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        updateViewerPosition();
+      }
+    });
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(pos => {
+        userPos = [pos.coords.latitude, pos.coords.longitude];
+        userMarker.setLatLng(userPos);
+        userMarker.setOpacity(1);
+
+        if (gpsFirstLoad) {
+          gpsFirstLoad = false;
+          if (busFirstLoad && !busActive) {
+            map.setView(userPos, 17, { animate: false });
+          }
+        }
+      }, null, {
+        enableHighAccuracy: false,
+        maximumAge: 30000,
+        timeout: 10000
+      });
+    }
+
+    function getPollingInterval(isBusCurrentlyActive) {
+      if (document.hidden) return 30000;
+
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
+      if (!isBusCurrentlyActive) {
+        return conn?.effectiveType === '4g' ? 15000 : 20000;
+      }
+
+      if (!conn) return 3000;
+
+      switch (conn.effectiveType) {
+        case '4g': return 3000;
+        case '3g': return 4000;
+        case '2g': return 6000;
+        default: return 3000;
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        if (currentPollTimer) clearTimeout(currentPollTimer);
+        debouncedUpdateData();
+      }
+    });
+
+    function debouncedUpdateData() {
+      if (updateTimeout) clearTimeout(updateTimeout);
+      updateTimeout = setTimeout(updateData, 100);
+    }
+
+    let lastNetworkUpdate = 0;
+    function updateNetUI() {
+      const now = Date.now();
+      if (now - lastNetworkUpdate < 1000) return;
+      lastNetworkUpdate = now;
+
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      const bars = document.querySelectorAll('.bar');
+      if (!conn) {
+        bars.forEach(b => b.classList.add('fill'));
+        document.getElementById('net-text').innerText = 'WIFI - STRONG';
+        return;
+      }
+
+      const physType = conn ? (conn.type || '').toLowerCase() : '';
+      const effType = conn ? (conn.effectiveType || '').toLowerCase() : '';
+      let str = 4, label = 'WIFI - STRONG';
+
+      if (physType === 'wifi') {
+        str = 4; label = 'WIFI - STRONG';
+      } else if (physType === 'cellular' || physType === 'wimax' || physType === 'other') {
+        if (effType === '4g') { str = 4; label = '4G - STRONG'; }
+        else if (effType === '3g') { str = 3; label = '3G - MEDIUM'; }
+        else if (effType === '2g' || effType === 'slow-2g') { str = 1; label = 'WEAK SIGNAL'; }
+        else { str = 2; label = 'CELLULAR'; }
+      } else {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (!isMobile) {
+          str = 4; label = 'WIFI - STRONG';
+        } else {
+          if (effType === '4g') { str = 4; label = '4G - STRONG'; }
+          else if (effType === '3g') { str = 3; label = '3G - MEDIUM'; }
+          else if (effType === '2g' || effType === 'slow-2g') { str = 1; label = 'WEAK SIGNAL'; }
+        }
+      }
+      bars.forEach((bar, i) => {
+        if (i < str) bar.classList.add('fill');
+        else bar.classList.remove('fill');
+      });
+      document.getElementById('net-text').innerText = label;
+    }
+
+    let currentPollTimer = null;
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn) {
+      conn.addEventListener('change', () => {
+        updateNetUI();
+        if (currentPollTimer) clearTimeout(currentPollTimer);
+        debouncedUpdateData();
+      });
+    }
+
+    function isValidPos(lat, lon) {
+      return typeof lat === 'number' && typeof lon === 'number' &&
+        isFinite(lat) && isFinite(lon) &&
+        lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 &&
+        !(lat === 0 && lon === 0);
+    }
+
+    function cleanupAdminMarkers() {
+      if (!adminKey) return;
+
+      const now = Date.now();
+      Object.keys(adminMarkers).forEach(ip => {
+        const marker = adminMarkers[ip];
+        if (marker._lastUpdate && (now - marker._lastUpdate) > 120000) {
+          map.removeLayer(marker);
+          delete adminMarkers[ip];
+        }
+      });
+    }
+    setInterval(cleanupAdminMarkers, 60000);
+
+    function handleData(data) {
+      document.getElementById('admin-badge').style.display =
+        (data.admin_active && adminKey) ? 'inline-flex' : 'none';
+      busActive = data.is_online;
+
+      if (busActive) {
+        hideNoSignalModal();
+        if (!wasBusActive && busVisible) { showOnlineAlert(); }
+
+        const newLat = parseFloat(data.lat);
+        const newLon = parseFloat(data.lon);
+
+        if (!isValidPos(newLat, newLon)) return;
+
+        const incomingDataTime = new Date(data.time).getTime();
+        if (incomingDataTime <= lastDataTime) return;
+
+        const newPos = [newLat, newLon];
+
+        if (busPos[0] !== 0 && lastBusUpdate > 0) {
+          const timeDeltaS = (Date.now() - lastBusUpdate) / 1000;
+          const dist = map.distance(busPos, newPos);
+          if (timeDeltaS > 0 && dist > 10 && (dist / timeDeltaS) > MAX_BUS_SPEED_MS) {
+            return;
+          }
+        }
+
+        lastDataTime = incomingDataTime;
+        lastBusUpdate = Date.now();
+
+        const moved = (busPos[0] !== 0) ? map.distance(busPos, newPos) : Infinity;
+        if (moved > 2.0) {
+          busHeading = getBearing(busPos[0], busPos[1], newLat, newLon);
+        }
+        busPos = newPos;
+
+        updateBusMarker(busPos);
+
+        if (!busVisible) { busMarker.setOpacity(1); busVisible = true; }
+
+        if (busFirstLoad && busPos[0] !== 0) {
+          map.setView(busPos, 17, { animate: false });
+          busFirstLoad = false;
+          gpsFirstLoad = false;
+          trackingEnabled = true;
+          isAutoTracking = true;
+          mapInteracted = false;
+        }
+
+        if (trackingEnabled && isAutoTracking && !mapInteracted && busPos[0] !== 0) {
+          const center = map.getCenter();
+          const distance = map.distance(center, busPos);
+
+          if (distance > 50) {
+            programmaticZoom = true;
+
+            if (map.getBearing() !== 0) {
+              map.setBearing(0, { animate: true });
+            }
+
+            map.panTo(busPos, {
+              animate: true,
+              duration: 0.5,
+              easeLinearity: 0.3
+            });
+
+            setTimeout(() => {
+              programmaticZoom = false;
+            }, 600);
+          }
+        }
+
+        const lastUpdatedTime = new Date(data.time);
+        const serverNow = new Date(data.server_now);
+        const ageMs = serverNow - lastUpdatedTime;
+        const localDisplayTime = new Date(Date.now() - ageMs);
+
+        document.getElementById('time').innerHTML = formatDateTime(localDisplayTime);
+        document.getElementById('status-text').innerText = data.status;
+        document.getElementById('status-text').style.color =
+          data.status === "RUNNING" ? "var(--accent)" : "#dc2626";
+        document.getElementById('status-hint').style.display = "none";
+        document.getElementById('conn-dot').className = "live-dot active";
+
+        // ========== FIX 3: Frontend check to avoid overwriting with placeholder values ==========
+        if (data.driver_phone && data.driver_phone !== "+91 XXXXX" && data.driver_phone.trim() !== "") {
+          const callEl = document.getElementById('driver-call');
+          if (callEl) callEl.href = 'tel:' + data.driver_phone.replace(/\s+/g, '');
+          const phoneEl = callEl ? callEl.querySelector('.detail') : null;
+          if (phoneEl) phoneEl.innerText = data.driver_phone;
+        }
+        if (data.driver_name && data.driver_name !== "TESTING" && data.driver_name.trim() !== "") {
+          const nameEl = document.getElementById('driver-name');
+          if (nameEl) nameEl.innerText = data.driver_name;
+        }
+        // =======================================================================================
+
+        wasBusActive = true;
+      } else {
+        if (wasBusActive) { showOfflineAlert(); wasBusActive = false; }
+        document.getElementById('conn-dot').className = "live-dot";
+        document.getElementById('status-text').innerText = "NO SIGNAL";
+        document.getElementById('status-text').style.color = "#dc2626";
+        document.getElementById('status-hint').style.display = "block";
+        showNoSignalModal();
+      }
+
+      // Admin viewers - sirf map par markers, panel nahi
+      if (adminKey && data.all_viewers) {
+        Object.keys(data.all_viewers).forEach(ip => {
+          const v = data.all_viewers[ip];
+          const deviceIcon = v.device === 'Android' || v.device === 'iPhone' ? '📱' : '💻';
+          const lbl = `${deviceIcon} ${v.device} | ${v.real_ip || ip}`;
+          if (v.has_location && isValidPos(parseFloat(v.lat), parseFloat(v.lon))) {
+            if (!adminMarkers[ip]) {
+              adminMarkers[ip] = L.marker([v.lat, v.lon], { icon: adminUserIcon })
+                .addTo(map)
+                .bindTooltip(lbl, { direction: 'top', className: 'map-label', permanent: true });
+              adminMarkers[ip]._lastUpdate = Date.now();
+            } else {
+              adminMarkers[ip].setLatLng([v.lat, v.lon]);
+              adminMarkers[ip].setTooltipContent(lbl);
+              adminMarkers[ip]._lastUpdate = Date.now();
+            }
+          }
+        });
+        Object.keys(adminMarkers).forEach(ip => {
+          if (!data.all_viewers[ip]) {
+            map.removeLayer(adminMarkers[ip]);
+            delete adminMarkers[ip];
+          }
+        });
+      }
+    }
+
+    function updateData() {
+      const headers = adminKey ? { 'X-Admin-Key': adminKey } : {};
+
+      fetch(`/get_bus?t=${Date.now()}`, { headers })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('offline-api-toast').classList.remove('show');
+          handleData(data);
+          const pollMs = getPollingInterval(data.is_online);
+          currentPollTimer = setTimeout(updateData, pollMs);
+        })
+        .catch(() => {
+          document.getElementById('offline-api-toast').classList.add('show');
+          currentPollTimer = setTimeout(updateData, 5000);
+        });
+    }
+
+    updateNetUI();
+
+    function updateClock() {
+      const clock = document.getElementById('current-time-clock');
+      if (clock) clock.innerHTML = formatDateTime(new Date());
+    }
+    updateClock();
+
+    const clockInterval = 1000;
+    setInterval(updateClock, clockInterval);
+
+    updateData();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>
