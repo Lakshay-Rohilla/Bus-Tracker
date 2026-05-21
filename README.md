@@ -1,4 +1,4 @@
-# 🚌 SGT Univerity Bus Tracker
+# SGT Univerity Bus Tracker
 
 Real-time bus tracking system for SGT University Route 43.  
 Live location on Google Maps, driver info, and status updates.
